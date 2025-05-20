@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepRally HeatMap Center</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>RepRally HeatMap Center</h1>
+        </div>
+        <nav>
+            <div class="search-container">
+                <input type="text" id="sellerSearchInput" placeholder="Search seller by full name...">
+                <button id="sellerSearchButton" class="search-button">Search</button>
+            </div>
+            <button id="backButton" class="back-button hidden">Go Back</button>
+        </nav>
+    </header>
+
+    <main>
+        <div class="dashboard-container">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+
+            <div class="filter-container">
+            <div class="filter-section">
+                <div class="filter-header">
+                <input type="checkbox" id="filter-all" checked>
+                <label for="filter-all">All</label>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-header">Stores</div>
+                <div class="filter-options">
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-store-active" checked>
+                    <label for="filter-store-active">Active</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-store-cooled" checked>
+                    <label for="filter-store-cooled">Cooled</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-store-churned" checked>
+                    <label for="filter-store-churned">Churned</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-store-checkin" checked>
+                    <label for="filter-store-checkin">CheckIn No Sales</label>
+                </div>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-header">Sellers</div>
+                <div class="filter-options">
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-seller-active" checked>
+                    <label for="filter-seller-active">Active</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-seller-churned" checked>
+                    <label for="filter-seller-churned">Churned</label>
+                </div>
+                </div>
+            </div>
+            </div>
+            <div class="info-panel">
+                <div class="info-header">
+                    <h2 id="infoTitle">US States Overview</h2>
+                </div>
+                <div class="info-content" id="stateInfo">
+                    <div class="loading-indicator">Loading data...</div>
+                </div>
+                <div class="info-content hidden" id="entityInfo">
+                    <h3 id="entityName">Select a store or seller</h3>
+                    <div id="entityDetails">
+                        <p>Hover over a store (circle) or seller (cross) to see details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 RepRally HeatMap Center</p>
+    </footer>
+
+    <div class="legend">
+        <h3>Legend</h3>
+        <div class="legend-item">
+            <div class="legend-color-scale"></div>
+            <span>GMV Last Month</span>
+        </div>
+        <div class="legend-symbols">
+            <div class="symbol-item">
+                <div class="circle-symbol" style="background-color: #1a9850;"></div>
+                <span>Active Store</span>
+            </div>
+            <div class="symbol-item">
+                <div class="circle-symbol" style="background-color: #fd8d3c;"></div>
+                <span>Cooled Store</span>
+            </div>
+            <div class="symbol-item">
+                <div class="circle-symbol" style="background-color: #e31a1c;"></div>
+                <span>Churned Store</span>
+            </div>
+            <div class="symbol-item">
+                <div class="circle-symbol" style="background-color: #ff69b4;"></div>
+                <span>CheckIn No Sales</span>
+            </div>
+            <h4>Sellers</h4>
+            <div class="symbol-item">
+                <div class="square-symbol" style="background-color: #1e88e5;"></div>
+                <span>Active Seller</span>
+            </div>
+            <div class="symbol-item">
+                <div class="square-symbol" style="background-color: #614200;"></div>
+                <span>Churned Seller</span>
+            </div>
+            <div class="symbol-item">
+                <div class="line-symbol"></div>
+                <span>Connection</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates for info panels -->
+    <template id="stateInfoTemplate">
+        <div class="state-summary">
+            <h3>{{stateName}}</h3>
+            <div class="stat-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Store Count</div>
+                    <div class="stat-value">{{storeCount}}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">GMV Last Month</div>
+                    <div class="stat-value">${{gmvLastMonth}}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">GMV This Month</div>
+                    <div class="stat-value">${{gmvThisMonth}}</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="storeInfoTemplate">
+        <div class="entity-details">
+            <h4>Store Details</h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value">{{address}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Store ID</div>
+                    <div class="detail-value">{{storeId}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">City</div>
+                    <div class="detail-value">{{city}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Store Status</div>
+                    <div class="detail-value">{{status}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Lifetime GMV</div>
+                    <div class="detail-value">${{lifetimeGmv}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">GMV Last Month</div>
+                    <div class="detail-value">${{gmvLastMonth}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">GMV This Month</div>
+                    <div class="detail-value">${{gmvThisMonth}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Recent Seller</div>
+                    <div class="detail-value">{{sellerName}}</div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template id="sellerInfoTemplate">
+        <div class="entity-details">
+            <h4>Seller Details</h4>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Seller ID</div>
+                    <div class="detail-value">{{sellerId}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Name</div>
+                    <div class="detail-value">{{fullName}}</div>
+                </div>
+                <div class="detail-item">
+                <div class="detail-label">Status</div>
+                <div class="detail-value status-{{statusClass}}">{{status}}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Last Order Date</div>
+                <div class="detail-value">{{lastOrder}}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Days Since Last Order</div>
+                <div class="detail-value">{{daysSinceLastOrder}}</div>
+            </div>
+                <div class="detail-item">
+                    <div class="detail-label">Lifetime GMV</div>
+                    <div class="detail-value">${{lifetimeGmv}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">GMV Last Month</div>
+                    <div class="detail-value">${{gmvLastMonth}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">GMV This Month</div>
+                    <div class="detail-value">${{gmvThisMonth}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Stores Last Month</div>
+                    <div class="detail-value">{{storesLastMonth}}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Stores Month-to-Date</div>
+                    <div class="detail-value">{{storesMtd}}</div>
+                </div>
+            </div>
+            <button class="view-connections-btn" data-seller-id="{{sellerId}}">View Connections</button>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/mapUtils.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

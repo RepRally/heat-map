@@ -1,0 +1,23 @@
+{
+  "name": "reprally-heatmap-center",
+  "version": "1.0.0",
+  "description": "A web application to visualize RepRally store and seller data on a geographical heatmap",
+  "main": "app.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node app.mjs",
+    "dev": "nodemon app.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "snowflake-sdk": "^1.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "author": "RepRally Team",
+  "license": "UNLICENSED",
+  "private": true
+}
