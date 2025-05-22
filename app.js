@@ -15,22 +15,22 @@ const PORT = process.env.PORT || 3000;
 
 // Snowflake connection
 const snowflakeConnection = snowflake.createConnection({
-  account: process.env.SNOWFLAKE_ACCOUNT,
-  username: process.env.SNOWFLAKE_USER,
-  password: process.env.SNOWFLAKE_PASSWORD,
-  warehouse: process.env.SNOWFLAKE_WAREHOUSE,
-  database: process.env.SNOWFLAKE_DATABASE,
-  schema: process.env.SNOWFLAKE_SCHEMA,
-  role: process.env.SNOWFLAKE_ROLE
+    account: process.env.SNOWFLAKE_ACCOUNT,
+    username: process.env.SNOWFLAKE_USER,
+    password: process.env.SNOWFLAKE_PASSWORD,
+    warehouse: process.env.SNOWFLAKE_WAREHOUSE,
+    database: process.env.SNOWFLAKE_DATABASE,
+    schema: process.env.SNOWFLAKE_SCHEMA,
+    role: process.env.SNOWFLAKE_ROLE
 });
 
 // Connect to Snowflake
 snowflakeConnection.connect((err) => {
-  if (err) {
-    console.error('Error connecting to Snowflake:', err);
-  } else {
-    // console.log('Successfully connected to Snowflake!');
-  }
+    if (err) {
+        console.error('Error connecting to Snowflake:', err);
+    } else {
+        // console.log('Successfully connected to Snowflake!');
+    }
 });
 
 // Serve static files
@@ -38,12 +38,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Create a specific route for the US states GeoJSON file
 app.get('/data/us-states.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'data', 'us-states.json'));
+    res.sendFile(path.join(__dirname, 'public', 'data', 'us-states.json'));
 });
 
 // API endpoint to get state-level GMV data for heatmap
 app.get('/api/states/gmv', (req, res) => {
-  const query = `
+    const query = `
     SELECT 
       STORE_STATE,
       SUM(GMV_LAST_MONTH) as TOTAL_GMV_LAST_MONTH,
@@ -59,24 +59,24 @@ app.get('/api/states/gmv', (req, res) => {
       TOTAL_GMV_LAST_MONTH DESC
   `;
 
-  snowflakeConnection.execute({
-    sqlText: query,
-    complete: (err, stmt, rows) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return res.status(500).json({ error: 'Failed to fetch data from Snowflake' });
-      }
-      
-      res.json(rows);
-    }
-  });
+    snowflakeConnection.execute({
+        sqlText: query,
+        complete: (err, stmt, rows) => {
+            if (err) {
+                console.error('Error executing query:', err);
+                return res.status(500).json({ error: 'Failed to fetch data from Snowflake' });
+            }
+
+            res.json(rows);
+        }
+    });
 });
 
 // API endpoint to get stores and sellers for a specific state
 app.get('/api/state/:state', (req, res) => {
-  const state = req.params.state;
-  
-  const storesQuery = `
+    const state = req.params.state;
+
+    const storesQuery = `
      SELECT 
       STORE_ID,
       STORE_LOCATION_NAME,
@@ -104,8 +104,8 @@ app.get('/api/state/:state', (req, res) => {
       AND STORE_FUNNEL_STATUS != 'not visited'
       AND STORE_STATE = '${state}'
   `;
-  
-  const sellersQuery = `
+
+    const sellersQuery = `
    SELECT 
       s.SELLER_ID,
       s.LATITUDE,
@@ -131,39 +131,39 @@ app.get('/api/state/:state', (req, res) => {
       AND s.LONGITUDE IS NOT NULL
       AND s.IS_ACCOUNT_ACTIVE = TRUE
   `;
-  
-  // Execute both queries
-  snowflakeConnection.execute({
-    sqlText: storesQuery,
-    complete: (err, stmt, storeRows) => {
-      if (err) {
-        console.error('Error executing stores query:', err);
-        return res.status(500).json({ error: 'Failed to fetch store data' });
-      }
-      
-      snowflakeConnection.execute({
-        sqlText: sellersQuery,
-        complete: (err, stmt, sellerRows) => {
-          if (err) {
-            console.error('Error executing sellers query:', err);
-            return res.status(500).json({ error: 'Failed to fetch seller data' });
-          }
-          
-          res.json({
-            stores: storeRows,
-            sellers: sellerRows
-          });
+
+    // Execute both queries
+    snowflakeConnection.execute({
+        sqlText: storesQuery,
+        complete: (err, stmt, storeRows) => {
+            if (err) {
+                console.error('Error executing stores query:', err);
+                return res.status(500).json({ error: 'Failed to fetch store data' });
+            }
+
+            snowflakeConnection.execute({
+                sqlText: sellersQuery,
+                complete: (err, stmt, sellerRows) => {
+                    if (err) {
+                        console.error('Error executing sellers query:', err);
+                        return res.status(500).json({ error: 'Failed to fetch seller data' });
+                    }
+
+                    res.json({
+                        stores: storeRows,
+                        sellers: sellerRows
+                    });
+                }
+            });
         }
-      });
-    }
-  });
+    });
 });
 
 // API endpoint to get seller-store connections for network visualization
 app.get('/api/seller/:sellerId/connections', async (req, res) => {
-  const sellerId = req.params.sellerId;
-  
-  const query = `
+    const sellerId = req.params.sellerId;
+
+    const query = `
     SELECT 
       s.SELLER_ID,
       s.LATITUDE AS SELLER_LATITUDE,
@@ -189,27 +189,27 @@ app.get('/api/seller/:sellerId/connections', async (req, res) => {
       AND st.STORE_FUNNEL_STATUS != 'not visited'
 
   `;
-  
-  // console.log("start time", new Date().toISOString());
-  snowflakeConnection.execute({
-    sqlText: query,
-    complete: (err, stmt, rows) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return res.status(500).json({ error: 'Failed to fetch connection data' });
-      }
-      
-      // console.log("end time", new Date().toISOString());
-      res.json(rows);
-    }
-  })
+
+    // console.log("start time", new Date().toISOString());
+    snowflakeConnection.execute({
+        sqlText: query,
+        complete: (err, stmt, rows) => {
+            if (err) {
+                console.error('Error executing query:', err);
+                return res.status(500).json({ error: 'Failed to fetch connection data' });
+            }
+
+            // console.log("end time", new Date().toISOString());
+            res.json(rows);
+        }
+    })
 });
 
 // API endpoint to get store-seller connections
 app.get('/api/store/:storeId/connections', (req, res) => {
-  const storeId = req.params.storeId;
-  
-  const query = `
+    const storeId = req.params.storeId;
+
+    const query = `
     SELECT 
       st.STORE_ID,
       st.LATITUDE as STORE_LATITUDE,
@@ -231,29 +231,29 @@ app.get('/api/store/:storeId/connections', (req, res) => {
       AND s.LATITUDE IS NOT NULL
       AND s.LONGITUDE IS NOT NULL
   `;
-  
-  snowflakeConnection.execute({
-    sqlText: query,
-    complete: (err, stmt, rows) => {
-      if (err) {
-        console.error('Error executing query:', err);
-        return res.status(500).json({ error: 'Failed to fetch connection data' });
-      }
-      
-      res.json(rows);
-    }
-  });
+
+    snowflakeConnection.execute({
+        sqlText: query,
+        complete: (err, stmt, rows) => {
+            if (err) {
+                console.error('Error executing query:', err);
+                return res.status(500).json({ error: 'Failed to fetch connection data' });
+            }
+
+            res.json(rows);
+        }
+    });
 });
 
 // API endpoint to search for sellers by name across all states
 app.get('/api/sellers/search', (req, res) => {
-  const searchTerm = req.query.name || '';
-  
-  if (!searchTerm.trim()) {
-    return res.status(400).json({ error: 'Search term is required' });
-  }
-  
-  const query = `
+    const searchTerm = req.query.name || '';
+
+    if (!searchTerm.trim()) {
+        return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    const query = `
     SELECT 
       s.SELLER_ID,
       s.LATITUDE,
@@ -283,30 +283,30 @@ app.get('/api/sellers/search', (req, res) => {
       AND s.IS_ACCOUNT_ACTIVE = TRUE
     LIMIT 10
   `;
-  
-  snowflakeConnection.execute({
-    sqlText: query,
-    complete: (err, stmt, rows) => {
-      if (err) {
-        console.error('Error executing search query:', err);
-        return res.status(500).json({ error: 'Failed to search sellers' });
-      }
-      
-      res.json(rows);
-    }
-  });
+
+    snowflakeConnection.execute({
+        sqlText: query,
+        complete: (err, stmt, rows) => {
+            if (err) {
+                console.error('Error executing search query:', err);
+                return res.status(500).json({ error: 'Failed to search sellers' });
+            }
+
+            res.json(rows);
+        }
+    });
 });
 
 // API endpoint to find sellers within a specified range of a store
 app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
-  const storeId = req.params.storeId;
-  const maxDistance = req.query.maxDistance || 200; // Default to 200 miles
-  
-  // console.log(`\n===== STARTING SELLER COVERAGE SEARCH =====`);
-  // console.log(`Looking for sellers near store ID: ${storeId} within ${maxDistance} miles`);
-  
-  // First get the store location
-  const storeQuery = `
+    const storeId = req.params.storeId;
+    const maxDistance = req.query.maxDistance || 200; // Default to 200 miles
+
+    // console.log(`\n===== STARTING SELLER COVERAGE SEARCH =====`);
+    // console.log(`Looking for sellers near store ID: ${storeId} within ${maxDistance} miles`);
+
+    // First get the store location
+    const storeQuery = `
     SELECT 
       STORE_ID,
       LATITUDE,
@@ -318,25 +318,25 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
       AND LATITUDE IS NOT NULL
       AND LONGITUDE IS NOT NULL
   `;
-  
-  snowflakeConnection.execute({
-    sqlText: storeQuery,
-    complete: (err, stmt, storeRows) => {
-      if (err) {
-        console.error('Error executing store query:', err);
-        return res.status(500).json({ error: 'Failed to fetch store data' });
-      }
-      
-      if (storeRows.length === 0) {
-        // console.log(`No store found with ID: ${storeId}`);
-        return res.status(404).json({ error: 'Store not found' });
-      }
-      
-      const store = storeRows[0];
-      // console.log(`Found store at location: ${store.LATITUDE}, ${store.LONGITUDE}`);
-      
-      // Then find sellers within the specified distance
-      const sellersQuery = `
+
+    snowflakeConnection.execute({
+        sqlText: storeQuery,
+        complete: (err, stmt, storeRows) => {
+            if (err) {
+                console.error('Error executing store query:', err);
+                return res.status(500).json({ error: 'Failed to fetch store data' });
+            }
+
+            if (storeRows.length === 0) {
+                // console.log(`No store found with ID: ${storeId}`);
+                return res.status(404).json({ error: 'Store not found' });
+            }
+
+            const store = storeRows[0];
+            // console.log(`Found store at location: ${store.LATITUDE}, ${store.LONGITUDE}`);
+
+            // Then find sellers within the specified distance
+            const sellersQuery = `
         SELECT 
           s.SELLER_ID,
           s.LATITUDE,
@@ -366,24 +366,24 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
         ORDER BY 
           DISTANCE_MILES ASC
       `;
-      
-      snowflakeConnection.execute({
-        sqlText: sellersQuery,
-        complete: (err, stmt, sellerRows) => {
-          if (err) {
-            console.error('Error executing sellers query:', err);
-            return res.status(500).json({ error: 'Failed to fetch seller data' });
-          }
-          
-          // console.log(`Found ${sellerRows.length} sellers within ${maxDistance} miles of store ${storeId}`);
-          
-          // Process each seller to calculate their radius and check if store is within it
-          const processAllSellers = async () => {
-            const processedSellers = [];
-            
-            for (const seller of sellerRows) {
-              // Fetch seller's connected stores to calculate their typical radius
-              const connectionsQuery = `
+
+            snowflakeConnection.execute({
+                sqlText: sellersQuery,
+                complete: (err, stmt, sellerRows) => {
+                    if (err) {
+                        console.error('Error executing sellers query:', err);
+                        return res.status(500).json({ error: 'Failed to fetch seller data' });
+                    }
+
+                    // console.log(`Found ${sellerRows.length} sellers within ${maxDistance} miles of store ${storeId}`);
+
+                    // Process each seller to calculate their radius and check if store is within it
+                    const processAllSellers = async () => {
+                        const processedSellers = [];
+
+                        for (const seller of sellerRows) {
+                            // Fetch seller's connected stores to calculate their typical radius
+                            const connectionsQuery = `
                 SELECT 
                   s.SELLER_ID,
                   s.LATITUDE as SELLER_LATITUDE,
@@ -402,115 +402,115 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
                   AND s.LATITUDE IS NOT NULL
                   AND s.LONGITUDE IS NOT NULL
               `;
-              
-              const connections = await new Promise((resolve) => {
-                snowflakeConnection.execute({
-                  sqlText: connectionsQuery,
-                  complete: (err, stmt, rows) => {
-                    if (err) {
-                      console.error(`Error fetching connections for seller ${seller.SELLER_ID}:`, err);
-                      resolve([]);
-                    } else {
-                      resolve(rows);
-                    }
-                  }
-                });
-              });
-              
-              // console.log(`Seller ${seller.SELLER_ID} has ${connections.length} connected stores`);
-              
-              // Calculate the 75th percentile distance if connections exist
-              let radius = 50000; // Default radius in meters (about 30 miles)
-              
-              if (connections.length > 0) {
-                const distances = connections.map(conn => {
-                  // Simple distance calculation in meters (approximate)
-                  const lat1 = conn.SELLER_LATITUDE * Math.PI / 180;
-                  const lon1 = conn.SELLER_LONGITUDE * Math.PI / 180;
-                  const lat2 = conn.STORE_LATITUDE * Math.PI / 180;
-                  const lon2 = conn.STORE_LONGITUDE * Math.PI / 180;
-                  
-                  // Haversine formula
-                  const dlon = lon2 - lon1;
-                  const dlat = lat2 - lat1;
-                  const a = Math.sin(dlat/2)**2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon/2)**2;
-                  const c = 2 * Math.asin(Math.sqrt(a));
-                  return 6371000 * c; // Earth radius in meters * c
-                });
-                
-                // Sort distances
-                distances.sort((a, b) => a - b);
-                
-                // Calculate 75th percentile
-                const idx = Math.ceil(distances.length * 0.75) - 1;
-                radius = distances[idx] || 50000;
-              }
-              
-              // Check if the store is within this radius
-              // Update the isInRadius check to include a small buffer (e.g., 2%)
-              const distanceInMeters = seller.DISTANCE_MILES * 1609.34; // Convert miles to meters
-              const bufferFactor = 1.05; // 2% buffer
-              const isInRadius = distanceInMeters <= (radius * bufferFactor);
 
-              // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles (${distanceInMeters.toFixed(2)} meters)`);
-              // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles (${radius.toFixed(2)} meters)`);
-              // console.log(`  With buffer: ${((radius * bufferFactor) / 1609.34).toFixed(2)} miles`);
-              // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} buffered radius`);
-              // console.log(`Seller ${seller.SELLER_ID} (${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}):`);
-              // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-              // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles`);
-              // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} radius`);
-              
-              // Add seller with radius info
-              processedSellers.push({
-                ...seller,
-                radius,
-                isInRadius
-              });
-            }
-            
-            return processedSellers;
-          };
-          
-          processAllSellers().then(processedSellers => {
-            // Log the final validation summary
-            const coveringSellers = processedSellers.filter(s => s.isInRadius);
-            
-            // console.log('\n===== SELLER COVERAGE VALIDATION SUMMARY =====');
-            // console.log(`Store ID: ${storeId}`);
-            // console.log(`Total nearby sellers found: ${processedSellers.length}`);
-            // console.log(`Sellers covering this store: ${coveringSellers.length}`);
-            
-            if (coveringSellers.length > 0) {
-              // console.log('\nSellers covering this store:');
-              coveringSellers.forEach(seller => {
-                // console.log(`  - ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME} (ID: ${seller.SELLER_ID})`);
-                // console.log(`    Status: ${seller.SELLER_STATUS}`);
-                // console.log(`    Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-                // console.log(`    Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
-              });
-            } else {
-              // console.log('No sellers cover this store.');
-            }
-            
-            // Send the response
-            res.json({
-              store,
-              sellers: processedSellers
+                            const connections = await new Promise((resolve) => {
+                                snowflakeConnection.execute({
+                                    sqlText: connectionsQuery,
+                                    complete: (err, stmt, rows) => {
+                                        if (err) {
+                                            console.error(`Error fetching connections for seller ${seller.SELLER_ID}:`, err);
+                                            resolve([]);
+                                        } else {
+                                            resolve(rows);
+                                        }
+                                    }
+                                });
+                            });
+
+                            // console.log(`Seller ${seller.SELLER_ID} has ${connections.length} connected stores`);
+
+                            // Calculate the 75th percentile distance if connections exist
+                            let radius = 50000; // Default radius in meters (about 30 miles)
+
+                            if (connections.length > 0) {
+                                const distances = connections.map(conn => {
+                                    // Simple distance calculation in meters (approximate)
+                                    const lat1 = conn.SELLER_LATITUDE * Math.PI / 180;
+                                    const lon1 = conn.SELLER_LONGITUDE * Math.PI / 180;
+                                    const lat2 = conn.STORE_LATITUDE * Math.PI / 180;
+                                    const lon2 = conn.STORE_LONGITUDE * Math.PI / 180;
+
+                                    // Haversine formula
+                                    const dlon = lon2 - lon1;
+                                    const dlat = lat2 - lat1;
+                                    const a = Math.sin(dlat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dlon / 2) ** 2;
+                                    const c = 2 * Math.asin(Math.sqrt(a));
+                                    return 6371000 * c; // Earth radius in meters * c
+                                });
+
+                                // Sort distances
+                                distances.sort((a, b) => a - b);
+
+                                // Calculate 75th percentile
+                                const idx = Math.ceil(distances.length * 0.75) - 1;
+                                radius = distances[idx] || 50000;
+                            }
+
+                            // Check if the store is within this radius
+                            // Update the isInRadius check to include a small buffer (e.g., 2%)
+                            const distanceInMeters = seller.DISTANCE_MILES * 1609.34; // Convert miles to meters
+                            const bufferFactor = 1.05; // 2% buffer
+                            const isInRadius = distanceInMeters <= (radius * bufferFactor);
+
+                            // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles (${distanceInMeters.toFixed(2)} meters)`);
+                            // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles (${radius.toFixed(2)} meters)`);
+                            // console.log(`  With buffer: ${((radius * bufferFactor) / 1609.34).toFixed(2)} miles`);
+                            // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} buffered radius`);
+                            // console.log(`Seller ${seller.SELLER_ID} (${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}):`);
+                            // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+                            // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles`);
+                            // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} radius`);
+
+                            // Add seller with radius info
+                            processedSellers.push({
+                                ...seller,
+                                radius,
+                                isInRadius
+                            });
+                        }
+
+                        return processedSellers;
+                    };
+
+                    processAllSellers().then(processedSellers => {
+                        // Log the final validation summary
+                        const coveringSellers = processedSellers.filter(s => s.isInRadius);
+
+                        // console.log('\n===== SELLER COVERAGE VALIDATION SUMMARY =====');
+                        // console.log(`Store ID: ${storeId}`);
+                        // console.log(`Total nearby sellers found: ${processedSellers.length}`);
+                        // console.log(`Sellers covering this store: ${coveringSellers.length}`);
+
+                        if (coveringSellers.length > 0) {
+                            // console.log('\nSellers covering this store:');
+                            coveringSellers.forEach(seller => {
+                                // console.log(`  - ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME} (ID: ${seller.SELLER_ID})`);
+                                // console.log(`    Status: ${seller.SELLER_STATUS}`);
+                                // console.log(`    Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+                                // console.log(`    Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
+                            });
+                        } else {
+                            // console.log('No sellers cover this store.');
+                        }
+
+                        // Send the response
+                        res.json({
+                            store,
+                            sellers: processedSellers
+                        });
+                    }).catch(error => {
+                        console.error('Error processing sellers:', error);
+                        res.status(500).json({ error: 'Error processing sellers' });
+                    });
+                }
             });
-          }).catch(error => {
-            console.error('Error processing sellers:', error);
-            res.status(500).json({ error: 'Error processing sellers' });
-          });
         }
-      });
-    }
-  });
+    });
 });
 
 // Helper function for Snowflake to calculate Haversine distance in miles
 snowflakeConnection.execute({
-  sqlText: `
+    sqlText: `
     CREATE OR REPLACE FUNCTION HAVERSINE(lat1 FLOAT, lon1 FLOAT, lat2 FLOAT, lon2 FLOAT)
     RETURNS FLOAT
     AS
@@ -530,29 +530,29 @@ snowflakeConnection.execute({
       END;
     $$;
   `,
-  complete: (err, stmt) => {
-    if (err) {
-      console.error('Error creating Haversine function:', err);
-    } else {
-      // console.log('Haversine function created successfully');
+    complete: (err, stmt) => {
+        if (err) {
+            console.error('Error creating Haversine function:', err);
+        } else {
+            // console.log('Haversine function created successfully');
+        }
     }
-  }
 });
 
 // Handle SPA routing
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start the server
 app.listen(PORT, () => {
-  // console.log(`Server is running on port ${PORT}`);
+    // console.log(`Server is running on port ${PORT}`);
 });
 
 // Handle process termination
 process.on('exit', () => {
-  if (snowflakeConnection) {
-    snowflakeConnection.destroy();
-    // console.log('Snowflake connection closed');
-  }
+    if (snowflakeConnection) {
+        snowflakeConnection.destroy();
+        // console.log('Snowflake connection closed');
+    }
 });
