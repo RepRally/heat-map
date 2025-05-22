@@ -12,11 +12,11 @@ const API_BASE_URL = '';
 async function fetchStatesGmvData() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/states/gmv`);
-        
+
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error('Error fetching states GMV data:', error);
@@ -32,11 +32,11 @@ async function fetchStatesGmvData() {
 async function fetchStateData(stateAbbr) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/state/${stateAbbr}`);
-        
+
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error(`Error fetching data for state ${stateAbbr}:`, error);
@@ -52,11 +52,11 @@ async function fetchStateData(stateAbbr) {
 async function fetchSellerConnections(sellerId) {
     try {
         const response = await fetch(`${API_BASE_URL}/api/seller/${sellerId}/connections`);
-        
+
         if (!response.ok) {
             throw new Error(`API error: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (error) {
         console.error(`Error fetching connections for seller ${sellerId}:`, error);

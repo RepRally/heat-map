@@ -27,20 +27,20 @@ document.addEventListener('DOMContentLoaded', () => {
 function initMap() {
     // Create map centered on US
     appState.map = L.map('map').setView([37.8, -96], 4);
-    
+
     // Add OpenStreetMap tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(appState.map);
-    
+
     // Create empty layers for later use
     appState.statesLayer = L.layerGroup().addTo(appState.map);
     appState.storesLayer = L.layerGroup();
     appState.sellersLayer = L.layerGroup();
     appState.connectionsLayer = L.layerGroup();
     appState.sellerRadiusLayer = L.layerGroup().addTo(appState.map)
-    
-    
+
+
     // Create a white overlay layer for better contrast when zoomed in
     appState.whiteOverlay = L.rectangle([[-90, -180], [90, 180]], {
         color: 'transparent',
@@ -52,186 +52,193 @@ function initMap() {
 
 // Initialize filter state
 const filterState = {
-  all: true,
-  store: {
-    active: true,
-    cooled: true,
-    churned: true,
-    checkin: true
-  },
-  seller: {
-    active: true,
-    churned: true
-  }
+    all: true,
+    store: {
+        active: true,
+        cooled: true,
+        churned: true,
+        checkin: true
+    },
+    seller: {
+        active: true,
+        churned: true
+    }
 };
 
 // Setup filter event listeners
 function setupFilterListeners() {
-  // All filter
-  document.getElementById('filter-all').addEventListener('change', (e) => {
-    const checked = e.target.checked;
-    filterState.all = checked;
-    
-    // Update all other checkboxes
-    document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(checkbox => {
-      checkbox.checked = checked;
-      
-      // Update filter state based on checkbox ID
-      const id = checkbox.id;
-      if (id.includes('store-active')) filterState.store.active = checked;
-      if (id.includes('store-cooled')) filterState.store.cooled = checked;
-      if (id.includes('store-churned')) filterState.store.churned = checked;
-      if (id.includes('store-checkin')) filterState.store.checkin = checked;
-      if (id.includes('seller-active')) filterState.seller.active = checked;
-      if (id.includes('seller-churned')) filterState.seller.churned = checked;
+    // All filter
+    document.getElementById('filter-all').addEventListener('change', (e) => {
+        const checked = e.target.checked;
+        filterState.all = checked;
+
+        // Update all other checkboxes
+        document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = checked;
+
+            // Update filter state based on checkbox ID
+            const id = checkbox.id;
+            if (id.includes('store-active')) filterState.store.active = checked;
+            if (id.includes('store-cooled')) filterState.store.cooled = checked;
+            if (id.includes('store-churned')) filterState.store.churned = checked;
+            if (id.includes('store-checkin')) filterState.store.checkin = checked;
+            if (id.includes('seller-active')) filterState.seller.active = checked;
+            if (id.includes('seller-churned')) filterState.seller.churned = checked;
+        });
+
+        applyFilters();
     });
-    
-    applyFilters();
-  });
-  
-  // Store filters
-  document.getElementById('filter-store-active').addEventListener('change', (e) => {
-    filterState.store.active = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
-  
-  document.getElementById('filter-store-cooled').addEventListener('change', (e) => {
-    filterState.store.cooled = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
-  
-  document.getElementById('filter-store-churned').addEventListener('change', (e) => {
-    filterState.store.churned = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
-  
-  document.getElementById('filter-store-checkin').addEventListener('change', (e) => {
-    filterState.store.checkin = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
-  
-  // Seller filters
-  document.getElementById('filter-seller-active').addEventListener('change', (e) => {
-    filterState.seller.active = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
-  
-  document.getElementById('filter-seller-churned').addEventListener('change', (e) => {
-    filterState.seller.churned = e.target.checked;
-    updateAllCheckbox();
-    applyFilters();
-  });
+
+    // Store filters
+    document.getElementById('filter-store-active').addEventListener('change', (e) => {
+        filterState.store.active = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
+
+    document.getElementById('filter-store-cooled').addEventListener('change', (e) => {
+        filterState.store.cooled = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
+
+    document.getElementById('filter-store-churned').addEventListener('change', (e) => {
+        filterState.store.churned = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
+
+    document.getElementById('filter-store-checkin').addEventListener('change', (e) => {
+        filterState.store.checkin = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
+
+    // Seller filters
+    document.getElementById('filter-seller-active').addEventListener('change', (e) => {
+        filterState.seller.active = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
+
+    document.getElementById('filter-seller-churned').addEventListener('change', (e) => {
+        filterState.seller.churned = e.target.checked;
+        updateAllCheckbox();
+        applyFilters();
+    });
 }
 
 // Update the "All" checkbox based on other checkboxes
 function updateAllCheckbox() {
-  const allChecked = 
-    filterState.store.active && 
-    filterState.store.cooled && 
-    filterState.store.churned && 
-    filterState.store.checkin &&
-    filterState.seller.active &&
-    filterState.seller.churned;
-  
-  document.getElementById('filter-all').checked = allChecked;
-  filterState.all = allChecked;
+    const allChecked =
+        filterState.store.active &&
+        filterState.store.cooled &&
+        filterState.store.churned &&
+        filterState.store.checkin &&
+        filterState.seller.active &&
+        filterState.seller.churned;
+
+    document.getElementById('filter-all').checked = allChecked;
+    filterState.all = allChecked;
 }
 
 // Apply filters to the map
 function applyFilters() {
-  // Filter stores
-  if (appState.storesLayer) {
-    appState.storesLayer.eachLayer(layer => {
-      if (!layer.storeStatus) return; // Skip if no status
-      
-      const visible = 
-        (layer.storeStatus === 'Active' && filterState.store.active) ||
-        (layer.storeStatus === 'Cooled' && filterState.store.cooled) ||
-        (layer.storeStatus === 'Churned' && filterState.store.churned) ||
-        (layer.storeStatus === 'CheckInNoSales' && filterState.store.checkin);
-      
-      if (visible) {
-        if (layer._path) layer._path.style.display = 'block';
-      } else {
-        if (layer._path) layer._path.style.display = 'none';
-      }
-    });
-  }
-  
-  // Filter sellers
-  if (appState.sellersLayer) {
-    appState.sellersLayer.eachLayer(layer => {
-      if (!layer.sellerStatus) return; // Skip if no status
-      
-      const visible = 
-        (layer.sellerStatus === 'Active Seller' && filterState.seller.active) ||
-        (layer.sellerStatus === 'Churned Seller' && filterState.seller.churned);
-      
-      if (visible) {
-        if (layer._icon) layer._icon.style.display = 'block';
-      } else {
-        if (layer._icon) layer._icon.style.display = 'none';
-      }
-    });
-  }
+    // Filter stores
+    if (appState.storesLayer) {
+        appState.storesLayer.eachLayer(layer => {
+            if (!layer.storeStatus) return; // Skip if no status
+
+            const visible =
+                (layer.storeStatus === 'Active' && filterState.store.active) ||
+                (layer.storeStatus === 'Cooled' && filterState.store.cooled) ||
+                (layer.storeStatus === 'Churned' && filterState.store.churned) ||
+                (layer.storeStatus === 'CheckInNoSales' && filterState.store.checkin);
+
+            if (visible) {
+                if (layer._path) layer._path.style.display = 'block';
+            } else {
+                if (layer._path) layer._path.style.display = 'none';
+            }
+        });
+    }
+
+    // Filter sellers
+    if (appState.sellersLayer) {
+        appState.sellersLayer.eachLayer(layer => {
+            if (!layer.sellerStatus) return; // Skip if no status
+
+            const visible =
+                (layer.sellerStatus === 'Active Seller' && filterState.seller.active) ||
+                (layer.sellerStatus === 'Churned Seller' && filterState.seller.churned);
+
+            if (visible) {
+                if (layer._icon) layer._icon.style.display = 'block';
+            } else {
+                if (layer._icon) layer._icon.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Set up event listeners
 function setupEventListeners() {
     // Back button
     document.getElementById('backButton').addEventListener('click', handleBackButton);
-    
+
     // Attach event listener for view connections buttons (event delegation)
-    document.addEventListener('click', (event) => {
+    document.addEventListener('click', async (event) => {
+        console.log("start click event", new Date().toISOString());
         if (event.target.classList.contains('view-connections-btn')) {
+            showLoading(true);
             const sellerId = event.target.getAttribute('data-seller-id');
             const storeId = event.target.getAttribute('data-store-id')
-            loadSellerConnections(sellerId);
-            loadStoreConnections(storeId);
+            // // console.log("start seller connections", new Date().toISOString());
+            await loadSellerConnections(sellerId);
+            // // console.log("end seller connections", new Date().toISOString());
+            await loadStoreConnections(storeId);
+            // // console.log("end store connections", new Date().toISOString());
+            showLoading(false);
         }
+        console.log("end click event", new Date().toISOString());
     });
-    
-    // Map click handler to reset store appearances when clicking elsewhere
-    appState.map.on('click', (e) => {
-        if (!e.originalEvent.target.classList.contains('square-marker') && 
-                !e.originalEvent.target.classList.contains('leaflet-interactive')) {
-                
-                // Clean up seller hover effects
-                document.querySelectorAll('.seller-hover-highlight').forEach(elem => {
-                    elem.classList.remove('seller-hover-highlight');
-                });
-                
-                document.querySelectorAll('.radius-hover').forEach(elem => {
-                    elem.classList.remove('radius-hover');
-                });
-                        // Check if we have a selected seller
-                if (appState.selectedSeller) {
-                    appState.selectedSeller = null;
-                    appState.connectionsLayer.clearLayers();
-                    appState.sellerRadiusLayer.clearLayers();
-                    restoreStoresAppearance();
-                    restoreSellersAppearance();
-                }
-                
-                // Check if we have a selected store
-                if (appState.selectedStore) {
-                    appState.selectedStore = null;
-                    appState.connectionsLayer.clearLayers();
-                    appState.sellerRadiusLayer.clearLayers();
-                    restoreStoresAppearance();
-                    restoreSellersAppearance();
-                }
 
-                //clear radius layer
-                if (appState.sellerRadiusLayer) {
-                    appState.sellerRadiusLayer.clearLayers();
-                }
+    // Map click handler to reset store appearances when clicking elsewhere
+    appState.map.on('click', async (e) => {
+        if (!e.originalEvent.target.classList.contains('square-marker') &&
+            !e.originalEvent.target.classList.contains('leaflet-interactive')) {
+
+            // Clean up seller hover effects
+            document.querySelectorAll('.seller-hover-highlight').forEach(elem => {
+                elem.classList.remove('seller-hover-highlight');
+            });
+
+            document.querySelectorAll('.radius-hover').forEach(elem => {
+                elem.classList.remove('radius-hover');
+            });
+            // Check if we have a selected seller
+            if (appState.selectedSeller) {
+                appState.selectedSeller = null;
+                appState.connectionsLayer.clearLayers();
+                appState.sellerRadiusLayer.clearLayers();
+                restoreStoresAppearance();
+                restoreSellersAppearance();
             }
+
+            // Check if we have a selected store
+            if (appState.selectedStore) {
+                appState.selectedStore = null;
+                appState.connectionsLayer.clearLayers();
+                appState.sellerRadiusLayer.clearLayers();
+                restoreStoresAppearance();
+                restoreSellersAppearance();
+            }
+
+            //clear radius layer
+            if (appState.sellerRadiusLayer) {
+                appState.sellerRadiusLayer.clearLayers();
+            }
+        }
     });
 }
 
@@ -239,52 +246,52 @@ function setupEventListeners() {
 async function loadNationalData() {
     try {
         showLoading(true);
-        
+
         // Load US states GeoJSON data
         const usStatesResponse = await fetch('/data/us-states.json');
-        
+
         if (!usStatesResponse.ok) {
             throw new Error(`Failed to load US states data: ${usStatesResponse.statusText}`);
         }
-        
+
         const usStatesData = await usStatesResponse.json();
-        console.log('GeoJSON data loaded successfully');
-        
+        // console.log('GeoJSON data loaded successfully');
+
         // Load state GMV data from API
         const stateGmvResponse = await fetch('/api/states/gmv');
-        
+
         if (!stateGmvResponse.ok) {
             throw new Error(`Failed to load GMV data: ${stateGmvResponse.statusText}`);
         }
-        
+
         const stateGmvData = await stateGmvResponse.json();
-        
+
         // Create a map for easy lookup
         const stateDataMap = {};
         stateGmvData.forEach(state => {
             stateDataMap[state.STORE_STATE] = state;
         });
-        
+
         // Calculate min/max GMV for color scale
         const gmvValues = stateGmvData.map(state => state.TOTAL_GMV_LAST_MONTH);
         const minGmv = Math.min(...gmvValues.filter(val => val > 0)) || 0;
         const maxGmv = Math.max(...gmvValues) || 1;
-        
+
         // Create color scale function
         appState.colorScale = createColorScale(minGmv, maxGmv);
-        
+
         // Add the GeoJSON layer with styling
         appState.statesData = L.geoJSON(usStatesData, {
             style: feature => styleState(feature, stateDataMap),
             onEachFeature: (feature, layer) => {
                 const stateName = feature.properties.name;
                 const stateAbbr = getStateAbbreviation(stateName);
-                const stateData = stateDataMap[stateAbbr] || { 
-                    TOTAL_GMV_LAST_MONTH: 0, 
-                    TOTAL_GMV_THIS_MONTH: 0, 
-                    STORE_COUNT: 0 
+                const stateData = stateDataMap[stateAbbr] || {
+                    TOTAL_GMV_LAST_MONTH: 0,
+                    TOTAL_GMV_THIS_MONTH: 0,
+                    STORE_COUNT: 0
                 };
-                
+
                 // Add hover effect
                 layer.on({
                     mouseover: (e) => {
@@ -302,12 +309,12 @@ async function loadNationalData() {
                 });
             }
         }).addTo(appState.statesLayer);
-        
+
         // Update UI
         updateViewState('national');
         createLegend();
         showLoading(false);
-        
+
     } catch (error) {
         console.error('Error loading national data:', error);
         showError('Failed to load map data. Please try again later.');
@@ -319,10 +326,10 @@ function styleState(feature, stateDataMap) {
     const stateName = feature.properties.name;
     const stateAbbr = getStateAbbreviation(stateName);
     const stateData = stateDataMap[stateAbbr];
-    
+
     const gmv = stateData ? stateData.TOTAL_GMV_LAST_MONTH : 0;
     const fillColor = gmv > 0 ? appState.colorScale(gmv) : '#f7f7f7';
-    
+
     return {
         fillColor: fillColor,
         weight: 1,
@@ -343,48 +350,48 @@ function createColorScale(min, max) {
 
 // Zoom to a specific state
 async function zoomToState(stateName, stateAbbr) {
-    return new Promise(async (resolve, reject)=> {
+    return new Promise(async (resolve, reject) => {
         try {
             showLoading(true);
-            
+
             // Update app state
             appState.currentView = 'state';
             appState.selectedState = stateAbbr;
-            
+
             // Clear previous state layers if any
             appState.storesLayer.clearLayers();
             appState.sellersLayer.clearLayers();
             appState.connectionsLayer.clearLayers();
-            
+
             // Find the state feature and zoom to its bounds
-            const stateFeature = appState.statesData.getLayers().find(layer => 
+            const stateFeature = appState.statesData.getLayers().find(layer =>
                 layer.feature.properties.name === stateName
             );
-            
+
             if (stateFeature) {
                 appState.map.fitBounds(stateFeature.getBounds());
             }
-            
+
             // Hide the green heatmap layer when zoomed in to a state
             appState.statesLayer.removeFrom(appState.map);
-            
+
             // Add white semi-transparent overlay for better contrast
             appState.whiteOverlay.addTo(appState.map);
-            
+
             // Make sure the white overlay is at the bottom
             appState.whiteOverlay.bringToBack();
-            
+
             // Load state-specific data
             const response = await fetch(`/api/state/${stateAbbr}`);
             const data = await response.json();
-            
+
             // Add stores as circles
             data.stores.forEach(store => {
                 if (store.LATITUDE && store.LONGITUDE) {
                     // Get the appropriate color based on store status
                     const storeStatus = store["Store Status"] || 'Active';
                     const fillColor = CONFIG.styles.colors.storeMarker[storeStatus] || '#1a9850';
-                    
+
                     const marker = L.circleMarker([store.LATITUDE, store.LONGITUDE], {
                         radius: calculateMarkerRadius(store.STORE_LIFETIME_GMV),
                         fillColor: fillColor,
@@ -394,12 +401,12 @@ async function zoomToState(stateName, stateAbbr) {
                         fillOpacity: 0.8,
                         className: 'store-marker' // Add a class for easier selection
                     });
-                    
+
                     // Store references for later use
                     marker.storeId = store.STORE_ID;
                     marker.storeStatus = storeStatus;
                     marker.originalColor = fillColor;
-                    
+
                     // Add hover effect
                     marker.on({
                         mouseover: () => {
@@ -414,11 +421,11 @@ async function zoomToState(stateName, stateAbbr) {
                             loadStoreConnections(store.STORE_ID);
                         }
                     });
-                    
+
                     marker.addTo(appState.storesLayer);
                 }
             });
-            
+
             // Add sellers as squares
             data.sellers.forEach(seller => {
                 if (seller.LATITUDE && seller.LONGITUDE) {
@@ -429,7 +436,7 @@ async function zoomToState(stateName, stateAbbr) {
 
                     // Calculate marker size based on GMV
                     const markerSize = calculateMarkerRadius(seller.SELLER_TOTAL_GMV) * 2;
-                    
+
                     // Create custom square icon
                     // Create custom square icon
                     const icon = L.divIcon({
@@ -437,13 +444,13 @@ async function zoomToState(stateName, stateAbbr) {
                         className: 'seller-marker',
                         iconSize: [markerSize, markerSize]
                     });
-                                    
+
                     const marker = L.marker([seller.LATITUDE, seller.LONGITUDE], { icon });
                     marker.seller = seller; // Store the full seller object for searching
                     marker.sellerId = seller.SELLER_ID; // Store seller ID for reference
                     marker.sellerStatus = sellerStatus; // Store seller status for reference
                     marker.originalColor = fillColor;   // Store original color for reference
-                    
+
                     // Add hover and click effects
                     marker.on({
                         mouseover: () => {
@@ -457,19 +464,19 @@ async function zoomToState(stateName, stateAbbr) {
                             loadSellerConnections(seller.SELLER_ID);
                         }
                     });
-                    
+
                     marker.addTo(appState.sellersLayer);
                 }
             });
-            
+
             // Add layers to map
             appState.storesLayer.addTo(appState.map);
             appState.sellersLayer.addTo(appState.map);
-            
+
             // Update UI
             updateViewState('state', stateName);
             showLoading(false);
-            
+
         } catch (error) {
             console.error('Error loading state data:', error);
             showError('Failed to load state data. Please try again later.');
@@ -482,12 +489,12 @@ async function zoomToState(stateName, stateAbbr) {
 function setupSearchFunctionality() {
     const searchInput = document.getElementById('sellerSearchInput');
     const searchButton = document.getElementById('sellerSearchButton');
-    
+
     // Search button click event
     searchButton.addEventListener('click', () => {
         performSellerSearch();
     });
-    
+
     // Enter key press in search input
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
@@ -500,34 +507,34 @@ function setupSearchFunctionality() {
 async function performSellerSearch() {
     const searchInput = document.getElementById('sellerSearchInput');
     const searchTerm = searchInput.value.trim();
-    
+
     if (!searchTerm) {
         showError('Please enter a seller name to search');
         return;
     }
-    
+
     try {
         showLoading(true);
-        
+
         // Get sellers matching the search term from the server
         const response = await fetch(`/api/sellers/search?name=${encodeURIComponent(searchTerm)}`);
-        
+
         if (!response.ok) {
             throw new Error('Failed to search for sellers');
         }
-        
+
         const sellers = await response.json();
-        
+
         if (sellers.length === 0) {
             showError('No sellers found with that name');
             showLoading(false);
             return;
         }
-        
+
         // Use the first matching seller
         const seller = sellers[0];
         const sellerState = seller.SELLER_STATE;
-        
+
         // If we're in national view, we need to zoom to the state first
         if (appState.currentView === 'national') {
             // Find the state feature
@@ -536,20 +543,20 @@ async function performSellerSearch() {
                 const stateAbbr = getStateAbbreviation(stateName);
                 return stateAbbr === sellerState;
             });
-            
+
             if (!stateFeature) {
                 showError(`Could not find state: ${sellerState}`);
                 showLoading(false);
                 return;
             }
-            
+
             // Zoom to the state
             await zoomToState(stateFeature.feature.properties.name, sellerState);
-            
+
             // Wait a bit for the state data to load
             await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        
+
         // Find the seller marker
         let sellerMarker = null;
         appState.sellersLayer.eachLayer(layer => {
@@ -557,16 +564,16 @@ async function performSellerSearch() {
                 sellerMarker = layer;
             }
         });
-        
+
         if (!sellerMarker) {
             showError('Seller found but could not locate on map');
             showLoading(false);
             return;
         }
-        
+
         // Center map on seller
         appState.map.setView(sellerMarker.getLatLng(), appState.map.getZoom() + 1);
-        
+
         // Highlight the seller
         if (sellerMarker._icon) {
             const markerElement = sellerMarker._icon.querySelector('.square-marker');
@@ -577,17 +584,17 @@ async function performSellerSearch() {
                         l._icon.querySelector('.square-marker').classList.remove('search-highlight');
                     }
                 });
-                
+
                 // Add highlight to found seller
                 markerElement.classList.add('search-highlight');
-                
+
                 // Trigger the seller's click event to show connections
                 loadSellerConnections(seller.SELLER_ID);
             }
         }
-        
+
         showLoading(false);
-        
+
     } catch (error) {
         console.error('Search error:', error);
         showError('Error searching for sellers');
@@ -598,49 +605,49 @@ async function performSellerSearch() {
 // Load store-seller connections
 async function loadStoreConnections(storeId) {
     try {
-        console.log('Loading Connections for store:', storeId)
+        // console.log('Loading Connections for store:', storeId)
         showLoading(true);
 
         // if(!appState.connectionsLayer){
         //     appState.connectionsLayer=L.featureGroup()
         // }
-        
+
         // Clear previous connections
         appState.connectionsLayer.clearLayers();
-        
+
         // Reset previous selection if any
         if (appState.selectedSeller) {
             appState.selectedSeller = null;
             restoreSellersAppearance();
             restoreStoresAppearance();
         }
-        
+
         // Load connection data
         const response = await fetch(`/api/store/${storeId}/connections`);
         const connections = await response.json();
 
-        console.log('Connection data:', connections);
+        // console.log('Connection data:', connections);
 
         if (connections.length === 0) {
-            console.log('No connections found for store ID:', storeId);
+            // console.log('No connections found for store ID:', storeId);
             showError('No seller connections found for this store.');
             showLoading(false);
             return;
         }
-        
+
         if (connections.length === 0) {
             showError('No seller connections found for this store.');
             showLoading(false);
             return;
         }
-        
+
         // Find store and seller locations
         const storeLat = connections[0].STORE_LATITUDE;
         const storeLng = connections[0].STORE_LONGITUDE;
         const sellerLat = connections[0].SELLER_LATITUDE;
         const sellerLng = connections[0].SELLER_LONGITUDE;
         const sellerId = connections[0].SELLER_ID;
-        
+
         // Make all other stores semi-transparent
         appState.storesLayer.eachLayer(layer => {
             if (layer.storeId !== storeId) {
@@ -652,7 +659,7 @@ async function loadStoreConnections(storeId) {
                 layer._path.classList.add('store-inactive');
             }
         });
-        
+
         // Highlight the connected seller
         appState.sellersLayer.eachLayer(layer => {
             if (layer.sellerId === sellerId) {
@@ -673,7 +680,7 @@ async function loadStoreConnections(storeId) {
                 }
             }
         });
-        
+
         // Draw connection as dotted line
         const line = L.polyline([
             [storeLat, storeLng],
@@ -684,16 +691,16 @@ async function loadStoreConnections(storeId) {
             opacity: 1.0,
             dashArray: '5, 10'
         });
-        
+
         line.addTo(appState.connectionsLayer);
-        
+
         // Add connections layer to map
         appState.connectionsLayer.addTo(appState.map);
-        
+
         // Update UI
         appState.selectedStore = storeId;
         showLoading(false);
-        
+
     } catch (error) {
         console.error('Error loading store connections:', error);
         showError('Failed to load store connections. Please try again later.');
@@ -703,17 +710,17 @@ async function loadStoreConnections(storeId) {
 // Add this function to calculate the 75th percentile of distances
 function calculatePercentileDistance(connections, percentile = 0.75) {
     if (!connections || connections.length === 0) return 1000; // Default radius if no connections
-    
+
     // Calculate distances between seller and all stores
     const distances = connections.map(conn => {
         const sellerLatLng = L.latLng(conn.SELLER_LATITUDE, conn.SELLER_LONGITUDE);
         const storeLatLng = L.latLng(conn.STORE_LATITUDE, conn.STORE_LONGITUDE);
         return sellerLatLng.distanceTo(storeLatLng);
     });
-    
+
     // Sort distances
     distances.sort((a, b) => a - b);
-    
+
     // Calculate index for percentile
     const index = Math.ceil(distances.length * percentile) - 1;
     return distances[index] || 1000; // Return the value at the percentile index
@@ -723,15 +730,15 @@ function calculatePercentileDistance(connections, percentile = 0.75) {
 async function loadSellerConnections(sellerId) {
     try {
         showLoading(true);
-        
+
         // Clear previous connections
         appState.connectionsLayer.clearLayers();
         appState.sellerRadiusLayer.clearLayers()
-        
+
         // Load connection data
         const response = await fetch(`/api/seller/${sellerId}/connections`);
         const connections = await response.json();
-        
+
         if (connections.length === 0) {
             showError('No connections found for this seller.');
             showLoading(false);
@@ -744,8 +751,8 @@ async function loadSellerConnections(sellerId) {
 
         //Get the seller's status from the layer data
         let sellerStatus = 'Active Seller'
-        appState.sellersLayer.eachLayer(layer=>{
-            if(layer.sellerId === sellerId && layer.sellerStatus){
+        appState.sellersLayer.eachLayer(layer => {
+            if (layer.sellerId === sellerId && layer.sellerStatus) {
                 sellerStatus = layer.sellerStatus
             }
         })
@@ -755,7 +762,7 @@ async function loadSellerConnections(sellerId) {
 
         //calculate 75percentile distance
         const radiusDistance = calculatePercentileDistance(connections)
-        
+
         // Clear any existing radius circles
         appState.sellerRadiusLayer.clearLayers();
 
@@ -775,10 +782,10 @@ async function loadSellerConnections(sellerId) {
         });
 
         circle.addTo(appState.sellerRadiusLayer);
-        
+
         // Create a set of connected store IDs for quick lookup
         const connectedStoreIds = new Set(connections.map(conn => conn.STORE_ID));
-        
+
         // Make all stores inactive (grey and semi-transparent)
         appState.storesLayer.eachLayer(layer => {
             if (!connectedStoreIds.has(layer.storeId)) {
@@ -790,7 +797,7 @@ async function loadSellerConnections(sellerId) {
                 layer._path.classList.add('store-inactive');
             }
         });
-        
+
         // Make all other sellers semi-transparent
         appState.sellersLayer.eachLayer(layer => {
             if (layer.sellerId !== sellerId && layer._icon) {
@@ -800,7 +807,7 @@ async function loadSellerConnections(sellerId) {
                 }
             }
         });
-        
+
         // Draw connections as dotted lines
         connections.forEach(conn => {
             if (conn.STORE_LATITUDE && conn.STORE_LONGITUDE) {
@@ -813,18 +820,18 @@ async function loadSellerConnections(sellerId) {
                     opacity: 0.7,
                     dashArray: '5, 10'
                 });
-                
+
                 line.addTo(appState.connectionsLayer);
             }
         });
-        
+
         // Add connections layer to map
         appState.connectionsLayer.addTo(appState.map);
-        
+
         // Update UI
         appState.selectedSeller = sellerId;
         showLoading(false);
-        
+
     } catch (error) {
         console.error('Error loading seller connections:', error);
         showError('Failed to load seller connections. Please try again later.');
@@ -855,9 +862,9 @@ function restoreSellersAppearance() {
             if (markerElement) {
                 markerElement.classList.remove('seller-inactive');
                 markerElement.classList.remove('seller-highlight');
-                markerElement.classList.remove('search-highlight'); 
+                markerElement.classList.remove('search-highlight');
                 markerElement.classList.remove('coverage-highlight');
-                
+
                 // Restore original color if stored
                 if (layer.originalColor) {
                     markerElement.style.backgroundColor = layer.originalColor;
@@ -876,42 +883,42 @@ function handleBackButton() {
 
         // In the handleBackButton function, when handling seller selection:
         appState.sellerRadiusLayer.clearLayers();
-        
+
         // Restore all stores to their original appearance
         restoreStoresAppearance();
-        
+
         // Restore all sellers to their original appearance
         restoreSellersAppearance();
-    } else if(appState.selectedStore){
+    } else if (appState.selectedStore) {
         // If showing store connections, go back to state view
         appState.selectedStore = null;
         appState.connectionsLayer.clearLayers();
         appState.sellerRadiusLayer.clearLayers();
         // Restore all stores to their original appearance
         restoreStoresAppearance();
-        
+
         // Restore all sellers to their original appearance
         restoreSellersAppearance();
     }
-        else if (appState.currentView === 'state') {
+    else if (appState.currentView === 'state') {
         // If showing state view, go back to national view
         appState.currentView = 'national';
         appState.selectedState = null;
-        
+
         // Clear state-specific layers
         appState.storesLayer.clearLayers().removeFrom(appState.map);
         appState.sellersLayer.clearLayers().removeFrom(appState.map);
         appState.connectionsLayer.clearLayers().removeFrom(appState.map);
-        
+
         // Remove the white overlay
         appState.whiteOverlay.removeFrom(appState.map);
-        
+
         // Reset map view
         appState.map.setView([37.8, -96], 4);
-        
+
         // Add back the heatmap layer when returning to national view
         appState.statesLayer.addTo(appState.map);
-        
+
         // Update UI
         updateViewState('national');
     }
@@ -920,7 +927,7 @@ function handleBackButton() {
 // Update view state and UI elements
 function updateViewState(view, stateName = '') {
     appState.currentView = view;
-    
+
     // Toggle back button visibility
     const backButton = document.getElementById('backButton');
     if (view === 'national') {
@@ -940,15 +947,15 @@ function updateViewState(view, stateName = '') {
 function showStateInfo(stateName, stateData) {
     const infoPanel = document.getElementById('stateInfo');
     const template = document.getElementById('stateInfoTemplate');
-    
+
     if (!template) return;
-    
+
     const content = template.innerHTML
         .replace('{{stateName}}', stateName)
         .replace('{{storeCount}}', formatNumber(stateData.STORE_COUNT || 0))
         .replace('{{gmvLastMonth}}', formatCurrency(stateData.TOTAL_GMV_LAST_MONTH || 0))
         .replace('{{gmvThisMonth}}', formatCurrency(stateData.TOTAL_GMV_THIS_MONTH || 0));
-    
+
     infoPanel.innerHTML = content;
 }
 
@@ -957,18 +964,18 @@ function showStoreInfo(store) {
     const infoPanel = document.getElementById('entityDetails');
     const entityName = document.getElementById('entityName');
     const template = document.getElementById('storeInfoTemplate');
-    
+
     if (!template) return;
-    
+
     entityName.textContent = store.STORE_LOCATION_NAME || 'Store';
-    
+
     const sellerName = store.SELLER_FIRST_NAME && store.SELLER_LAST_NAME
         ? `${store.SELLER_FIRST_NAME} ${store.SELLER_LAST_NAME}`
         : 'N/A';
 
     const storeStatus = store["Store Status"] || 'Active';
     const statusClass = storeStatus.toLowerCase().replace(/\s+/g, '-');
-    
+
     const content = template.innerHTML
         .replace('{{storeId}}', store.STORE_ID || 'N/A')
         .replace('{{storeName}}', store.STORE_LOCATION_NAME || 'N/A')
@@ -980,7 +987,7 @@ function showStoreInfo(store) {
         .replace('{{gmvLastMonth}}', formatCurrency(store.GMV_LAST_MONTH || 0))
         .replace('{{gmvThisMonth}}', formatCurrency(store.GMV_CURRENT_MONTH || 0))
         .replace('{{sellerName}}', sellerName);
-    
+
     infoPanel.innerHTML = content;
 
     // Add event listener for the view connections button
@@ -997,35 +1004,35 @@ function showSellerInfo(seller) {
     const infoPanel = document.getElementById('entityDetails');
     const entityName = document.getElementById('entityName');
     const template = document.getElementById('sellerInfoTemplate');
-    
+
     if (!template) return;
-    
+
     const fullName = `${seller.SELLER_FIRST_NAME || ''} ${seller.SELLER_LAST_NAME || ''}`.trim() || 'Unnamed Seller';
     entityName.textContent = fullName;
 
     // Helper function to get property regardless of case
-function getPropertyCaseInsensitive(obj, propertyName) {
-    // First try the exact property name
-    if (obj[propertyName] !== undefined) {
-        return obj[propertyName];
-    }
-    
-    // Then try case-insensitive search
-    const lowerPropertyName = propertyName.toLowerCase();
-    for (const key in obj) {
-        if (key.toLowerCase() === lowerPropertyName) {
-            return obj[key];
+    function getPropertyCaseInsensitive(obj, propertyName) {
+        // First try the exact property name
+        if (obj[propertyName] !== undefined) {
+            return obj[propertyName];
         }
+
+        // Then try case-insensitive search
+        const lowerPropertyName = propertyName.toLowerCase();
+        for (const key in obj) {
+            if (key.toLowerCase() === lowerPropertyName) {
+                return obj[key];
+            }
+        }
+
+        return undefined;
     }
-    
-    return undefined;
-}
 
     const sellerStatus = getPropertyCaseInsensitive(seller, 'SELLER_STATUS') || 'Active Seller';
     const statusClass = sellerStatus.toLowerCase().replace(/\s+/g, '-');
     const daysSinceLastOrder = getPropertyCaseInsensitive(seller, 'DAYS_SINCE_LAST_ORDER') || 'N/A';
     const lastOrderDate = getPropertyCaseInsensitive(seller, 'LAST_ORDER_AT') || 'N/A';
-    
+
     const content = template.innerHTML
         .replace('{{fullName}}', fullName)
         .replace('{{status}}', sellerStatus)
@@ -1038,7 +1045,7 @@ function getPropertyCaseInsensitive(obj, propertyName) {
         .replace('{{storesLastMonth}}', formatNumber(seller.STORES_LAST_MONTH || 0))
         .replace('{{storesMtd}}', formatNumber(seller.STORES_MTD || 0))
         .replace('{{sellerId}}', seller.SELLER_ID);
-    
+
     infoPanel.innerHTML = content;
 }
 
@@ -1069,46 +1076,46 @@ function removeHoverEvents(layer) {
 async function loadStoreCoverage(storeId) {
     try {
         showLoading(true);
-        
+
         // Clear previous connections and radius circles
         appState.connectionsLayer.clearLayers();
         appState.sellerRadiusLayer.clearLayers();
-        
+
         // Reset any previous seller selection
         if (appState.selectedSeller) {
             appState.selectedSeller = null;
             restoreSellersAppearance();
         }
-        
+
         // Load nearby sellers data
         const response = await fetch(`/api/store/${storeId}/nearby-sellers?maxDistance=200`);
         if (!response.ok) {
             throw new Error(`Failed to load coverage data: ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         const { store, sellers } = data;
 
         // Log the entire response for validation
-        console.log('Complete store coverage data:', data);
+        // console.log('Complete store coverage data:', data);
 
         // Log sellers who cover the store
         const coveringSellers = sellers.filter(seller => seller.isInRadius);
-        console.log(`Sellers covering store ${storeId} (${coveringSellers.length} total):`);
+        // console.log(`Sellers covering store ${storeId} (${coveringSellers.length} total):`);
         coveringSellers.forEach(seller => {
-            console.log(`  Seller ID: ${seller.SELLER_ID}`);
-            console.log(`  Name: ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}`);
-            console.log(`  Status: ${seller.SELLER_STATUS}`);
-            console.log(`  Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-            console.log(`  Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
+            // console.log(`  Seller ID: ${seller.SELLER_ID}`);
+            // console.log(`  Name: ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}`);
+            // console.log(`  Status: ${seller.SELLER_STATUS}`);
+            // console.log(`  Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+            // console.log(`  Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
         });
-        
+
         if (sellers.length === 0) {
             showError('No sellers found within 200 miles of this store');
             showLoading(false);
             return;
         }
-        
+
         // Highlight the store
         let storeMarker = null;
         appState.storesLayer.eachLayer(layer => {
@@ -1128,10 +1135,10 @@ async function loadStoreCoverage(storeId) {
                 });
             }
         });
-        
+
         // Create a counter for sellers covering this store
         let coveringSellerCount = 0;
-        
+
         // First, make all sellers semi-transparent
         appState.sellersLayer.eachLayer(layer => {
             if (layer._icon) {
@@ -1141,14 +1148,14 @@ async function loadStoreCoverage(storeId) {
                 }
             }
         });
-        
+
         const sellerCircleMap = new Map();// To store references to each seller's radius circle
 
         // Draw seller radius circles and highlight sellers who cover the store
         sellers.forEach(seller => {
             const isInRadius = seller.isInRadius;
             const radius = seller.radius;
-            
+
             if (isInRadius) {
                 coveringSellerCount++;
             }
@@ -1159,20 +1166,20 @@ async function loadStoreCoverage(storeId) {
 
             // Calculate the ratio between server and client distances
             const ratio = (seller.DISTANCE_MILES * 1609.34) / clientDistance;
-            
+
             // Override the server's decision if it's close
             if (Math.abs(seller.DISTANCE_MILES * 1609.34 - clientDistance) > 1000) {
-                console.log(`Distance calculation discrepancy for seller ${seller.SELLER_ID}:`);
-                console.log(`  Server: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-                console.log(`  Client: ${(clientDistance / 1609.34).toFixed(2)} miles`);
-                
+                // console.log(`Distance calculation discrepancy for seller ${seller.SELLER_ID}:`);
+                // console.log(`  Server: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+                // console.log(`  Client: ${(clientDistance / 1609.34).toFixed(2)} miles`);
+
                 // If client-side calculation puts it within radius but server doesn't, override
                 if (clientDistance <= seller.radius && !seller.isInRadius) {
-                    console.log(`  Overriding server decision: store IS within radius`);
+                    // console.log(`  Overriding server decision: store IS within radius`);
                     seller.isInRadius = true;
                 }
             }
-                    
+
             // Find the seller marker
             appState.sellersLayer.eachLayer(layer => {
                 if (layer.sellerId === seller.SELLER_ID) {
@@ -1185,7 +1192,7 @@ async function loadStoreCoverage(storeId) {
                                 markerElement.classList.add('coverage-highlight');
                             }
                         }
-                        
+
                         // Draw a connection to the store
                         const line = L.polyline([
                             [seller.LATITUDE, seller.LONGITUDE],
@@ -1196,12 +1203,12 @@ async function loadStoreCoverage(storeId) {
                             opacity: 0.3,
                             dashArray: '5, 10'
                         });
-                        
+
                         line.addTo(appState.connectionsLayer);
                     }
                 }
             });
-            
+
             // Draw the seller's radius circle
             const circleOptions = {
                 color: isInRadius ? '#1a9850' : '#cccccc', // Green for covering sellers, gray for others
@@ -1211,13 +1218,13 @@ async function loadStoreCoverage(storeId) {
                 opacity: isInRadius ? 0.7 : 0.3,
                 interactive: false
             };
-            
+
             const circle = L.circle([seller.LATITUDE, seller.LONGITUDE], {
                 radius: radius,
                 ...circleOptions
             });
 
-            
+
             circle.addTo(appState.sellerRadiusLayer);
         });
 
@@ -1227,14 +1234,14 @@ async function loadStoreCoverage(storeId) {
             // Find the seller marker
             appState.sellersLayer.eachLayer(layer => {
                 if (layer.sellerId == seller.SELLER_ID) { // Use loose equality to handle string/number discrepancies
-                    
+
                     //remove preivous hover event
                     removeHoverEvents(layer)
                     // Get the circle reference
                     const circle = sellerCircleMap.get(seller.SELLER_ID.toString());
-                    
+
                     if (!circle) return;
-                    
+
                     // Add hover events
                     layer.on({
                         mouseover: () => {
@@ -1245,7 +1252,7 @@ async function loadStoreCoverage(storeId) {
                                     markerElement.classList.add('seller-hover-highlight');
                                 }
                             }
-                            
+
                             // Highlight the radius circle
                             if (circle._path) {
                                 circle._path.classList.add('radius-hover');
@@ -1259,7 +1266,7 @@ async function loadStoreCoverage(storeId) {
                                     markerElement.classList.remove('seller-hover-highlight');
                                 }
                             }
-                            
+
                             // Remove highlight from radius circle
                             if (circle._path) {
                                 circle._path.classList.remove('radius-hover');
@@ -1269,18 +1276,18 @@ async function loadStoreCoverage(storeId) {
                 }
             });
         });
-        
+
         // Add connections and radius layers to map
         appState.connectionsLayer.addTo(appState.map);
         appState.sellerRadiusLayer.addTo(appState.map);
-        
+
         // Correct way to bring layer group's layers to back
         appState.sellerRadiusLayer.eachLayer(layer => {
             if (layer.bringToBack) {
                 layer.bringToBack();
             }
         });
-        
+
         // Update UI to show coverage info
         if (coveringSellerCount > 0) {
             //showing seller found
@@ -1288,10 +1295,10 @@ async function loadStoreCoverage(storeId) {
         } else {
             showInfo('This store is not covered by any nearby sellers');
         }
-        
+
         // Set the selected store
         appState.selectedStore = storeId;
-        
+
         showLoading(false);
     } catch (error) {
         console.error('Error loading store coverage:', error);
@@ -1304,17 +1311,17 @@ async function loadStoreCoverage(storeId) {
 function showInfo(message) {
     // Create or update info message element
     let infoElement = document.getElementById('info-message');
-    
+
     if (!infoElement) {
         infoElement = document.createElement('div');
         infoElement.id = 'info-message';
         infoElement.className = 'info-message';
         document.body.appendChild(infoElement);
     }
-    
+
     infoElement.textContent = message;
     infoElement.style.display = 'block';
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
         infoElement.style.display = 'none';
@@ -1325,13 +1332,13 @@ function showInfo(message) {
 function createLegend() {
     const legendColors = document.querySelector('.legend-color-scale');
     const colorSteps = 5;
-    
+
     // Get domain from color scale
     const domain = appState.colorScale.domain();
     const min = domain[0];
     const max = domain[1];
     const step = (max - min) / (colorSteps - 1);
-    
+
     // Create color blocks
     let legendHTML = '';
     for (let i = 0; i < colorSteps; i++) {
@@ -1340,7 +1347,7 @@ function createLegend() {
         legendHTML += `<div class="legend-color" style="background-color: ${color};" 
                       title="$${formatCurrency(value)}"></div>`;
     }
-    
+
     legendColors.innerHTML = legendHTML;
 }
 
@@ -1361,20 +1368,20 @@ function showLoading(isLoading) {
 
 function showError(message) {
     console.error(message);
-    
+
     // Create or update error message element
     let errorElement = document.getElementById('error-message');
-    
+
     if (!errorElement) {
         errorElement = document.createElement('div');
         errorElement.id = 'error-message';
         errorElement.className = 'error-message';
         document.body.appendChild(errorElement);
     }
-    
+
     errorElement.textContent = message;
     errorElement.style.display = 'block';
-    
+
     // Auto-hide after 5 seconds
     setTimeout(() => {
         errorElement.style.display = 'none';
@@ -1386,7 +1393,7 @@ function formatNumber(num) {
 }
 
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', { 
+    return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     }).format(amount);
@@ -1447,6 +1454,6 @@ function getStateAbbreviation(stateName) {
         'Wyoming': 'WY',
         'District of Columbia': 'DC'
     };
-    
+
     return stateMap[stateName] || stateName;
 }

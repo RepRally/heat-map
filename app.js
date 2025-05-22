@@ -29,7 +29,7 @@ snowflakeConnection.connect((err) => {
   if (err) {
     console.error('Error connecting to Snowflake:', err);
   } else {
-    console.log('Successfully connected to Snowflake!');
+    // console.log('Successfully connected to Snowflake!');
   }
 });
 
@@ -160,7 +160,7 @@ app.get('/api/state/:state', (req, res) => {
 });
 
 // API endpoint to get seller-store connections for network visualization
-app.get('/api/seller/:sellerId/connections', (req, res) => {
+app.get('/api/seller/:sellerId/connections', async (req, res) => {
   const sellerId = req.params.sellerId;
   
   const query = `
@@ -190,6 +190,7 @@ app.get('/api/seller/:sellerId/connections', (req, res) => {
 
   `;
   
+  // console.log("start time", new Date().toISOString());
   snowflakeConnection.execute({
     sqlText: query,
     complete: (err, stmt, rows) => {
@@ -198,9 +199,10 @@ app.get('/api/seller/:sellerId/connections', (req, res) => {
         return res.status(500).json({ error: 'Failed to fetch connection data' });
       }
       
+      // console.log("end time", new Date().toISOString());
       res.json(rows);
     }
-  });
+  })
 });
 
 // API endpoint to get store-seller connections
@@ -300,8 +302,8 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
   const storeId = req.params.storeId;
   const maxDistance = req.query.maxDistance || 200; // Default to 200 miles
   
-  console.log(`\n===== STARTING SELLER COVERAGE SEARCH =====`);
-  console.log(`Looking for sellers near store ID: ${storeId} within ${maxDistance} miles`);
+  // console.log(`\n===== STARTING SELLER COVERAGE SEARCH =====`);
+  // console.log(`Looking for sellers near store ID: ${storeId} within ${maxDistance} miles`);
   
   // First get the store location
   const storeQuery = `
@@ -326,12 +328,12 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
       }
       
       if (storeRows.length === 0) {
-        console.log(`No store found with ID: ${storeId}`);
+        // console.log(`No store found with ID: ${storeId}`);
         return res.status(404).json({ error: 'Store not found' });
       }
       
       const store = storeRows[0];
-      console.log(`Found store at location: ${store.LATITUDE}, ${store.LONGITUDE}`);
+      // console.log(`Found store at location: ${store.LATITUDE}, ${store.LONGITUDE}`);
       
       // Then find sellers within the specified distance
       const sellersQuery = `
@@ -373,7 +375,7 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
             return res.status(500).json({ error: 'Failed to fetch seller data' });
           }
           
-          console.log(`Found ${sellerRows.length} sellers within ${maxDistance} miles of store ${storeId}`);
+          // console.log(`Found ${sellerRows.length} sellers within ${maxDistance} miles of store ${storeId}`);
           
           // Process each seller to calculate their radius and check if store is within it
           const processAllSellers = async () => {
@@ -415,7 +417,7 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
                 });
               });
               
-              console.log(`Seller ${seller.SELLER_ID} has ${connections.length} connected stores`);
+              // console.log(`Seller ${seller.SELLER_ID} has ${connections.length} connected stores`);
               
               // Calculate the 75th percentile distance if connections exist
               let radius = 50000; // Default radius in meters (about 30 miles)
@@ -450,14 +452,14 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
               const bufferFactor = 1.05; // 2% buffer
               const isInRadius = distanceInMeters <= (radius * bufferFactor);
 
-              console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles (${distanceInMeters.toFixed(2)} meters)`);
-              console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles (${radius.toFixed(2)} meters)`);
-              console.log(`  With buffer: ${((radius * bufferFactor) / 1609.34).toFixed(2)} miles`);
-              console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} buffered radius`);
-              console.log(`Seller ${seller.SELLER_ID} (${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}):`);
-              console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-              console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles`);
-              console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} radius`);
+              // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles (${distanceInMeters.toFixed(2)} meters)`);
+              // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles (${radius.toFixed(2)} meters)`);
+              // console.log(`  With buffer: ${((radius * bufferFactor) / 1609.34).toFixed(2)} miles`);
+              // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} buffered radius`);
+              // console.log(`Seller ${seller.SELLER_ID} (${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME}):`);
+              // console.log(`  Distance to store: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+              // console.log(`  Calculated radius: ${(radius / 1609.34).toFixed(2)} miles`);
+              // console.log(`  Store is ${isInRadius ? 'WITHIN' : 'OUTSIDE'} radius`);
               
               // Add seller with radius info
               processedSellers.push({
@@ -474,21 +476,21 @@ app.get('/api/store/:storeId/nearby-sellers', (req, res) => {
             // Log the final validation summary
             const coveringSellers = processedSellers.filter(s => s.isInRadius);
             
-            console.log('\n===== SELLER COVERAGE VALIDATION SUMMARY =====');
-            console.log(`Store ID: ${storeId}`);
-            console.log(`Total nearby sellers found: ${processedSellers.length}`);
-            console.log(`Sellers covering this store: ${coveringSellers.length}`);
+            // console.log('\n===== SELLER COVERAGE VALIDATION SUMMARY =====');
+            // console.log(`Store ID: ${storeId}`);
+            // console.log(`Total nearby sellers found: ${processedSellers.length}`);
+            // console.log(`Sellers covering this store: ${coveringSellers.length}`);
             
             if (coveringSellers.length > 0) {
-              console.log('\nSellers covering this store:');
+              // console.log('\nSellers covering this store:');
               coveringSellers.forEach(seller => {
-                console.log(`  - ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME} (ID: ${seller.SELLER_ID})`);
-                console.log(`    Status: ${seller.SELLER_STATUS}`);
-                console.log(`    Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
-                console.log(`    Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
+                // console.log(`  - ${seller.SELLER_FIRST_NAME} ${seller.SELLER_LAST_NAME} (ID: ${seller.SELLER_ID})`);
+                // console.log(`    Status: ${seller.SELLER_STATUS}`);
+                // console.log(`    Distance: ${seller.DISTANCE_MILES.toFixed(2)} miles`);
+                // console.log(`    Radius: ${(seller.radius / 1609.34).toFixed(2)} miles`);
               });
             } else {
-              console.log('No sellers cover this store.');
+              // console.log('No sellers cover this store.');
             }
             
             // Send the response
@@ -532,7 +534,7 @@ snowflakeConnection.execute({
     if (err) {
       console.error('Error creating Haversine function:', err);
     } else {
-      console.log('Haversine function created successfully');
+      // console.log('Haversine function created successfully');
     }
   }
 });
@@ -544,13 +546,13 @@ app.get('*', (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  // console.log(`Server is running on port ${PORT}`);
 });
 
 // Handle process termination
 process.on('exit', () => {
   if (snowflakeConnection) {
     snowflakeConnection.destroy();
-    console.log('Snowflake connection closed');
+    // console.log('Snowflake connection closed');
   }
 });
