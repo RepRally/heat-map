@@ -189,6 +189,7 @@ function setupEventListeners() {
     // Attach event listener for view connections buttons (event delegation)
     document.addEventListener('click', async (event) => {
         console.log("start click event", new Date().toISOString());
+        console.log(event.target.classList)
         if (event.target.classList.contains('view-connections-btn')) {
             showLoading(true);
             const sellerId = event.target.getAttribute('data-seller-id');
@@ -207,6 +208,9 @@ function setupEventListeners() {
     appState.map.on('click', async (e) => {
         if (!e.originalEvent.target.classList.contains('square-marker') &&
             !e.originalEvent.target.classList.contains('leaflet-interactive')) {
+            console.log('clicked handled', new Date().toISOString());
+            showLoading(true);
+
 
             // Clean up seller hover effects
             document.querySelectorAll('.seller-hover-highlight').forEach(elem => {
@@ -238,6 +242,7 @@ function setupEventListeners() {
             if (appState.sellerRadiusLayer) {
                 appState.sellerRadiusLayer.clearLayers();
             }
+            showLoading(false);
         }
     });
 }
@@ -415,6 +420,8 @@ async function zoomToState(stateName, stateAbbr) {
                         },
                         mouseout: () => {
                             marker.setStyle({ fillOpacity: 0.8, radius: calculateMarkerRadius(store.STORE_LIFETIME_GMV) });
+                            console.log('mouseout', new Date().toISOString());
+                            showStoreInfo(null);
                         },
                         click: () => {
                             loadStoreCoverage(store.STORE_ID);
@@ -963,6 +970,14 @@ function showStateInfo(stateName, stateData) {
 function showStoreInfo(store) {
     const infoPanel = document.getElementById('entityDetails');
     const entityName = document.getElementById('entityName');
+
+    if (!store) {
+        infoPanel.innerHTML = '';
+        entityName.innerHTML = '';
+        return;
+    }
+
+
     const template = document.getElementById('storeInfoTemplate');
 
     if (!template) return;
